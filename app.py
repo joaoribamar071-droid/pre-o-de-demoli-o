@@ -1,45 +1,39 @@
 import streamlit as st
 import pandas as pd
+from pathlib import Path
 
-# ==============================
-# CONFIGURAÇÃO DO APP
-# ==============================
+# ========= CONFIGURAÇÃO DO APP =========
+static_dir = Path(__file__).parent
+
 st.set_page_config(
-    page_title="Tabela de Preços de Demolição",
-    page_icon="🏗️",
+    page_title="CBMI APP",
+    page_icon="apple-touch-icon.png",  # Ícone no navegador
     layout="wide"
 )
 
-# ==============================
-# INJEÇÃO DO MANIFEST E ICONES
-# ==============================
+# Força Safari/iOS a usar o ícone certo
 st.markdown(
     """
-    <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <meta name="theme-color" content="#004aad">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" href="apple-touch-icon.png">
     """,
     unsafe_allow_html=True
 )
 
-# ==============================
-# INTERFACE PRINCIPAL
-# ==============================
-st.title("🏗️ Tabela de Preços - Demolição")
+# ========= CABEÇALHO =========
+st.title("🏗️ CBMI - Tabela de Preços de Demolição")
 
-# Upload do CSV
+# ========= UPLOAD DO CSV =========
 uploaded_file = st.file_uploader("📂 Envie o arquivo CSV com a tabela de preços", type=["csv"])
 
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
 
-    # Tratamento de dados
+    # Garantir que preços são numéricos
     df["Preço (€)"] = pd.to_numeric(df["Preço (€)"], errors="coerce")
     df = df.dropna(subset=["Preço (€)"])
 
-    # ==============================
-    # SIDEBAR - FILTROS
-    # ==============================
+    # ========= SIDEBAR - FILTROS =========
     st.sidebar.header("🔍 Filtros")
     categoria = st.sidebar.selectbox("Escolha uma categoria", ["Todas"] + df["Categoria"].unique().tolist())
 
@@ -58,17 +52,12 @@ if uploaded_file:
             df_filtrado["Categoria"].str.contains(pesquisa, case=False, na=False)
         ]
 
-    # ==============================
-    # TABELA DE SERVIÇOS
-    # ==============================
+    # ========= TABELA =========
     st.subheader("📋 Lista de Serviços")
     st.dataframe(df_filtrado, use_container_width=True)
 
-    # ==============================
-    # DASHBOARD DE ANÁLISE
-    # ==============================
+    # ========= DASHBOARD =========
     st.subheader("📊 Dashboard de Análise")
-
     col1, col2 = st.columns(2)
 
     with col1:
@@ -87,13 +76,9 @@ if uploaded_file:
         else:
             st.warning("Nenhum dado encontrado para exibir o gráfico.")
 
-    # ==============================
-    # ÁREA DE EMPOLAMENTO
-    # ==============================
+    # ========= ÁREA DE EMPOLAMENTO =========
     st.subheader("⚙️ Área de Empolamento")
-
     valor = st.number_input("Digite um valor para empolamento", min_value=0.0, format="%.2f")
-
     resultado = valor * 0.66
     st.write(f"Resultado (valor × 0,66): **{resultado:.2f}**")
 
