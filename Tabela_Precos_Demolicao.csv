@@ -1,0 +1,46 @@
+﻿Categoria,Serviço,Preço (€),Unidade
+PAREDE,Demolição de parede de alvenaria,45,m³
+PAREDE,Demolição de parede de alvenaria de pedra,70,m³
+PAREDE,Demolição de parede de betão armado,90,m³
+PAREDE,Demolição de parede de taipa,30,m³
+PAREDE,Demolição de paredes interiores em betão,89,m²
+PAREDE,Demolição de muros exteriores cerâmica/betão,35,ml
+PAREDE,Demolição de paredes exteriores chapa metálica,25,ml
+PAVIMENTOS,Demolição de pavimento misto,14,m²
+PAVIMENTOS,Demolição de pavimento em paralelepípedo,11,m²
+PAVIMENTOS,Demolição de pavimento em betão,20,m²
+PAVIMENTOS,Demolição de pavimento asfáltico,10,m²
+PAVIMENTOS,Demolição de pavimento cerâmico,14,m²
+PAVIMENTOS,Demolição de pavimento em lajetas de betão,5,m²
+PAVIMENTOS,Demolição de pavimento de seixo,5,m²
+PAVIMENTOS,Demolição de pavimento de lajetas pedra natural,10,m²
+PAVIMENTOS,Demolição de pavimento em marmorite,10,m²
+PAVIMENTOS,Demolição de pavimento em borracha,10,m²
+COBERTURAS,Desmontagem de cobertura chapa metálica,23,m²
+COBERTURAS,Demolição de cobertura metálica inclinada,40,m²
+COBERTURAS,Demolição de cobertura acessível,37,m²
+COBERTURAS,Demolição de cobertura não acessível,24,m²
+FUNDAÇÕES,Demolição de fundação de cantaria,168,m³
+FUNDAÇÕES,Demolição de fundação de betão,196,m³
+FUNDAÇÕES,Demolição de fundação de alvenaria,146,m³
+PILARES E LAJE,Demolição de laje metálica,52,m²
+PILARES E LAJE,Demolição de laje de betão,83,m²
+PILARES E LAJE,Demolição de escada de laje de betão,63,m²
+PILARES E LAJE,Demolição de laje de madeira,27,m²
+PILARES E LAJE,Demolição de pilar metálico,16,m
+PILARES E LAJE,Demolição de pilar de ferro fundido,88,m³
+PILARES E LAJE,Demolição de pilar de pedra,253,m
+PILARES E LAJE,Demolição de pilar de betão armado,450,m³
+PILARES E LAJE,Demolição de pilar de madeira,16,m
+EQUIPAMENTOS DE CASA DE BANHO, Sanitas e pias, 25, ud
+EQUIPAMENTOS DE CASA DE BANHO, Torneira e acessorios, 20, ud
+EQUIPAMENTO DIVERSOS, cadeiras,40,ud
+EQUIPAMENTO DIVERSOS, mesa 50, ud
+EQUIPAMENTO DIVERSOS, porta simples, 50, ud
+EQUIPAMENTO DIVERSOS, porta dupla, 100, ud
+EQUIPAMENTO DIVERSOS, sinaletes, 10, ud
+EQUIPAMENTO DIVERSOS, artigos de incendio, 20, ud
+FACHADAS, fachada de tijolo com face a vista, 14, m²
+FACHADAS, Remate de laje, 14, m²
+FACHADA, Fachada de alvenaria, 9,m²
+FACHADAS, Fachadas de betão, 22, m²
