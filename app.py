@@ -1,11 +1,21 @@
 import streamlit as st
 import pandas as pd
 
+# ===== Configurações do PWA =====
 st.set_page_config(page_title="Tabela de Preços de Demolição", layout="wide")
 
+st.markdown(
+    """
+    <link rel="apple-touch-icon" href="logo_512x512.png">
+    <link rel="manifest" href="manifest.json">
+    """,
+    unsafe_allow_html=True
+)
+
+# ===== Título =====
 st.title("🏗️ Tabela de Preços - Demolição")
 
-# Upload do CSV
+# ===== Upload do CSV =====
 uploaded_file = st.file_uploader("📂 Envie o arquivo CSV com a tabela de preços", type=["csv"])
 
 if uploaded_file:
@@ -38,7 +48,7 @@ if uploaded_file:
     st.subheader("📋 Lista de Serviços")
     st.dataframe(df_filtrado, use_container_width=True)
 
-    # Dashboard
+    # ===== Dashboard =====
     st.subheader("📊 Dashboard de Análise")
 
     col1, col2 = st.columns(2)
@@ -59,7 +69,7 @@ if uploaded_file:
         else:
             st.warning("Nenhum dado encontrado para exibir o gráfico.")
 
-    # ======= NOVA ÁREA DE EMPOLAMENTO =======
+    # ===== Área de Empolamento =====
     st.subheader("⚙️ Área de Empolamento")
 
     valor = st.number_input("Digite um valor para empolamento", min_value=0.0, format="%.2f")
