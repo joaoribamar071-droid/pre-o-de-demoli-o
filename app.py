@@ -1,21 +1,33 @@
 import streamlit as st
 import pandas as pd
 
-# ===== Configurações do PWA =====
-st.set_page_config(page_title="Tabela de Preços de Demolição", layout="wide")
+# ==============================
+# CONFIGURAÇÃO DO APP
+# ==============================
+st.set_page_config(
+    page_title="Tabela de Preços de Demolição",
+    page_icon="🏗️",
+    layout="wide"
+)
 
+# ==============================
+# INJEÇÃO DO MANIFEST E ICONES
+# ==============================
 st.markdown(
     """
-    <link rel="apple-touch-icon" href="logo_512x512.png">
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta name="theme-color" content="#004aad">
     """,
     unsafe_allow_html=True
 )
 
-# ===== Título =====
+# ==============================
+# INTERFACE PRINCIPAL
+# ==============================
 st.title("🏗️ Tabela de Preços - Demolição")
 
-# ===== Upload do CSV =====
+# Upload do CSV
 uploaded_file = st.file_uploader("📂 Envie o arquivo CSV com a tabela de preços", type=["csv"])
 
 if uploaded_file:
@@ -25,7 +37,9 @@ if uploaded_file:
     df["Preço (€)"] = pd.to_numeric(df["Preço (€)"], errors="coerce")
     df = df.dropna(subset=["Preço (€)"])
 
-    # Sidebar com filtros
+    # ==============================
+    # SIDEBAR - FILTROS
+    # ==============================
     st.sidebar.header("🔍 Filtros")
     categoria = st.sidebar.selectbox("Escolha uma categoria", ["Todas"] + df["Categoria"].unique().tolist())
 
@@ -44,11 +58,15 @@ if uploaded_file:
             df_filtrado["Categoria"].str.contains(pesquisa, case=False, na=False)
         ]
 
-    # Mostrar tabela
+    # ==============================
+    # TABELA DE SERVIÇOS
+    # ==============================
     st.subheader("📋 Lista de Serviços")
     st.dataframe(df_filtrado, use_container_width=True)
 
-    # ===== Dashboard =====
+    # ==============================
+    # DASHBOARD DE ANÁLISE
+    # ==============================
     st.subheader("📊 Dashboard de Análise")
 
     col1, col2 = st.columns(2)
@@ -69,7 +87,9 @@ if uploaded_file:
         else:
             st.warning("Nenhum dado encontrado para exibir o gráfico.")
 
-    # ===== Área de Empolamento =====
+    # ==============================
+    # ÁREA DE EMPOLAMENTO
+    # ==============================
     st.subheader("⚙️ Área de Empolamento")
 
     valor = st.number_input("Digite um valor para empolamento", min_value=0.0, format="%.2f")
