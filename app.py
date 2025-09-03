@@ -22,6 +22,33 @@ st.markdown(
 
 # ========= CABEÇALHO =========
 st.title("BACKOFFICE CBMI")
+import streamlit as st
+import trimesh
+import tempfile
+import os
+
+st.title("🏗️ Visualizador 3D de Prédio")
+
+uploaded_model = st.file_uploader("📁 Envie um modelo 3D (.stl)", type=["stl"])
+
+if uploaded_model:
+    # Salvar arquivo temporariamente
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".stl") as tmp:
+        tmp.write(uploaded_model.read())
+        tmp_path = tmp.name
+
+    # Carregar o modelo 3D
+    mesh = trimesh.load(tmp_path)
+
+    # Renderizar cena em HTML (usando three.js)
+    scene = mesh.scene()
+    html = scene.show(renderer='threejs', notebook=False, return_html=True)
+
+    # Exibir no app
+    st.components.v1.html(html, height=600)
+
+    # Remover temporário
+    os.remove(tmp_path)
 
 # ========= UPLOAD DO CSV =========
 uploaded_file = st.file_uploader("📂 Envie o arquivo CSV com a tabela de preços", type=["csv"])
@@ -84,6 +111,7 @@ if uploaded_file:
 
 else:
     st.info("👆 Faça upload do arquivo `Tabela_Precos_Demolicao.csv` para visualizar os dados.")
+
 
 
 
