@@ -21,94 +21,7 @@ st.markdown(
 )
 
 # ========= CABEÇALHO =========
-st.title("🏗️ CBMI - Tabela de Preços de Demolição")
-import streamlit as st
-import pandas as pd
-import fitz  # PyMuPDF
-from fuzzywuzzy import process
-import zipfile
-import io
-import os
-from PIL import Image
-
-st.title("📦 CBMI - Perguntas com Arquivos ZIP (com origem da resposta)")
-
-uploaded_file = st.file_uploader("📁 Envie um ZIP com arquivos PDF, Excel ou CSV", type=["zip"])
-
-# Funções auxiliares
-
-def extract_text_from_pdf(file_stream):
-    text = ""
-    with fitz.open(stream=file_stream, filetype="pdf") as doc:
-        for page in doc:
-            text += page.get_text()
-    return text
-
-def extract_text_from_table(file_stream, ext):
-    if ext == "csv":
-        df = pd.read_csv(file_stream)
-    else:
-        df = pd.read_excel(file_stream)
-    textos = []
-    for idx, row in df.iterrows():
-        linha_texto = " | ".join(row.astype(str))
-        textos.append((linha_texto, idx, df))  # Guardar índice e dataframe
-    return textos
-
-def process_file(filename, file_stream):
-    ext = filename.split(".")[-1].lower()
-    if ext == "pdf":
-        text = extract_text_from_pdf(file_stream)
-        frases = [linha.strip() for linha in text.split('\n') if linha.strip()]
-        return [{"arquivo": filename, "texto": f, "preview": None} for f in frases]
-    elif ext in ["xlsx", "xls", "csv"]:
-        linhas = extract_text_from_table(file_stream, ext)
-        return [{"arquivo": filename, "texto": linha, "preview": df.iloc[[idx]]} for linha, idx, df in linhas]
-    else:
-        return []
-
-# === Processamento do ZIP ===
-
-frases_total = []
-
-if uploaded_file:
-    with zipfile.ZipFile(uploaded_file) as z:
-        for name in z.namelist():
-            if name.endswith(('.pdf', '.xlsx', '.xls', '.csv')):
-                st.info(f"📄 Processando arquivo: {name}")
-                with z.open(name) as f:
-                    file_bytes = io.BytesIO(f.read())
-                    frases = process_file(name, file_bytes)
-                    frases_total.extend(frases)
-
-# === Interface de pergunta ===
-
-if frases_total:
-    pergunta = st.text_input("❓ Faça sua pergunta com base no conteúdo dos arquivos:")
-    if pergunta:
-        # Coletar todos os textos para comparação
-        corpus = [f["texto"] for f in frases_total]
-        resultados = process.extract(pergunta, corpus, limit=5)
-
-        st.subheader("💡 Resultados mais parecidos com sua pergunta:")
-
-        for match_texto, score in resultados:
-            # Encontrar a entrada original que contém esse texto
-            entrada = next((f for f in frases_total if f["texto"] == match_texto), None)
-            if not entrada:
-                continue
-
-            st.markdown(f"""
-            **🎯 Similaridade:** {score}%  
-            **📁 Arquivo:** `{entrada['arquivo']}`  
-            **📝 Trecho:** {match_texto}
-            """)
-
-            # Mostrar prévia se for Excel/CSV
-            if entrada["preview"] is not None:
-                st.write("📊 Linha correspondente:")
-                st.dataframe(entrada["preview"])
-
+st.title("BACKOFFICE CBMI")
 
 # ========= UPLOAD DO CSV =========
 uploaded_file = st.file_uploader("📂 Envie o arquivo CSV com a tabela de preços", type=["csv"])
@@ -171,6 +84,7 @@ if uploaded_file:
 
 else:
     st.info("👆 Faça upload do arquivo `Tabela_Precos_Demolicao.csv` para visualizar os dados.")
+
 
 
 
