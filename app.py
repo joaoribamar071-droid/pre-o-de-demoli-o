@@ -29,13 +29,13 @@ from fuzzywuzzy import process
 import zipfile
 import io
 import os
+from PIL import Image
 
-st.title("📋 CBMI - Assistente de Perguntas com Arquivos")
+st.title("📦 CBMI - Perguntas com Arquivos ZIP (com origem da resposta)")
 
-# Upload do arquivo (PDF, Excel, CSV ou ZIP)
-uploaded_file = st.file_uploader("📁 Envie um arquivo PDF, Excel, CSV ou ZIP", type=["pdf", "xlsx", "xls", "csv", "zip"])
+uploaded_file = st.file_uploader("📁 Envie um ZIP com arquivos PDF, Excel ou CSV", type=["zip"])
 
-# === Funções auxiliares ===
+# Funções auxiliares
 
 def extract_text_from_pdf(file_stream):
     text = ""
@@ -50,48 +50,64 @@ def extract_text_from_table(file_stream, ext):
     else:
         df = pd.read_excel(file_stream)
     textos = []
-    for col in df.columns:
-        textos.extend(df[col].astype(str).tolist())
+    for idx, row in df.iterrows():
+        linha_texto = " | ".join(row.astype(str))
+        textos.append((linha_texto, idx, df))  # Guardar índice e dataframe
     return textos
 
 def process_file(filename, file_stream):
     ext = filename.split(".")[-1].lower()
     if ext == "pdf":
         text = extract_text_from_pdf(file_stream)
-        return [linha.strip() for linha in text.split('\n') if linha.strip()]
+        frases = [linha.strip() for linha in text.split('\n') if linha.strip()]
+        return [{"arquivo": filename, "texto": f, "preview": None} for f in frases]
     elif ext in ["xlsx", "xls", "csv"]:
-        return extract_text_from_table(file_stream, ext)
+        linhas = extract_text_from_table(file_stream, ext)
+        return [{"arquivo": filename, "texto": linha, "preview": df.iloc[[idx]]} for linha, idx, df in linhas]
     else:
         return []
 
-# === Processamento do arquivo ===
+# === Processamento do ZIP ===
 
 frases_total = []
 
 if uploaded_file:
-    file_ext = uploaded_file.name.split(".")[-1].lower()
-
-    if file_ext == "zip":
-        with zipfile.ZipFile(uploaded_file) as z:
-            for name in z.namelist():
-                if name.endswith(('.pdf', '.xlsx', '.xls', '.csv')):
-                    st.info(f"📄 Processando arquivo: {name}")
-                    with z.open(name) as f:
-                        file_bytes = io.BytesIO(f.read())
-                        frases = process_file(name, file_bytes)
-                        frases_total.extend(frases)
-    else:
-        frases_total = process_file(uploaded_file.name, uploaded_file)
+    with zipfile.ZipFile(uploaded_file) as z:
+        for name in z.namelist():
+            if name.endswith(('.pdf', '.xlsx', '.xls', '.csv')):
+                st.info(f"📄 Processando arquivo: {name}")
+                with z.open(name) as f:
+                    file_bytes = io.BytesIO(f.read())
+                    frases = process_file(name, file_bytes)
+                    frases_total.extend(frases)
 
 # === Interface de pergunta ===
 
 if frases_total:
     pergunta = st.text_input("❓ Faça sua pergunta com base no conteúdo dos arquivos:")
     if pergunta:
-        resultados = process.extract(pergunta, frases_total, limit=5)
+        # Coletar todos os textos para comparação
+        corpus = [f["texto"] for f in frases_total]
+        resultados = process.extract(pergunta, corpus, limit=5)
+
         st.subheader("💡 Resultados mais parecidos com sua pergunta:")
-        for frase, score in resultados:
-            st.write(f"**{score}%** similar: {frase}")
+
+        for match_texto, score in resultados:
+            # Encontrar a entrada original que contém esse texto
+            entrada = next((f for f in frases_total if f["texto"] == match_texto), None)
+            if not entrada:
+                continue
+
+            st.markdown(f"""
+            **🎯 Similaridade:** {score}%  
+            **📁 Arquivo:** `{entrada['arquivo']}`  
+            **📝 Trecho:** {match_texto}
+            """)
+
+            # Mostrar prévia se for Excel/CSV
+            if entrada["preview"] is not None:
+                st.write("📊 Linha correspondente:")
+                st.dataframe(entrada["preview"])
 
 
 # ========= UPLOAD DO CSV =========
@@ -155,6 +171,7 @@ if uploaded_file:
 
 else:
     st.info("👆 Faça upload do arquivo `Tabela_Precos_Demolicao.csv` para visualizar os dados.")
+
 
 
 
