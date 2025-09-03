@@ -24,36 +24,12 @@ st.markdown(
 st.title("🏗️ CBMI - Tabela de Preços de Demolição")
 import streamlit as st
 import pandas as pd
-from pathlib import Path
 import fitz  # PyMuPDF
+from fuzzywuzzy import process
 
-# ======== CONFIGURAÇÃO DO APP ========
-static_dir = Path(__file__).parent
+st.title("📋 CBMI - Assistente Simples de Perguntas")
 
-st.set_page_config(
-    page_title="CBMI APP",
-    page_icon="apple-touch-icon.png",  # Ícone no navegador
-    layout="wide"
-)
-
-# Força Safari/iOS a usar o ícone certo
-st.markdown(
-    """
-    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-    <link rel="icon" href="apple-touch-icon.png">
-    """,
-    unsafe_allow_html=True
-)
-
-# ======== CABEÇALHO ========
-st.title("📋 CBMI - Tabela de Preços de Demolição")
-
-# --- Nova seção para busca de palavras-chave em arquivos ---
-st.subheader("🔍 Buscar palavras-chave em arquivos")
-st.write("Envie um arquivo PDF, Excel ou CSV e veja se ele contém as palavras que você está procurando.")
-
-uploaded_file = st.file_uploader("📁 Enviar arquivo", type=["pdf", "xlsx", "xls", "csv"], key="file_upload_busca")
-keywords_input = st.text_input("🔑 Palavras-chave (separadas por vírgula)", key="keyword_input")
+uploaded_file = st.file_uploader("📁 Envie um arquivo PDF, Excel ou CSV", type=["pdf", "xlsx", "xls", "csv"])
 
 def extract_text_from_pdf(file):
     text = ""
@@ -67,53 +43,33 @@ def extract_text_from_table(file, ext):
         df = pd.read_csv(file)
     else:
         df = pd.read_excel(file)
-    return df
+    # Concatenar todas as células em uma lista de frases
+    textos = []
+    for col in df.columns:
+        textos.extend(df[col].astype(str).tolist())
+    return textos
 
-if uploaded_file and keywords_input:
+if uploaded_file:
     ext = uploaded_file.name.split(".")[-1].lower()
-    keywords = [k.strip().lower() for k in keywords_input.split(",")]
-
-    st.subheader("🔎 Resultados")
-
     if ext == "pdf":
-        text = extract_text_from_pdf(uploaded_file).lower()
-        for keyword in keywords:
-            if keyword in text:
-                st.success(f"✅ Palavra-chave **{keyword}** encontrada.")
-                
-                # Mostrar até 5 trechos com a palavra no texto
-                matches = [linha.strip() for linha in text.split('\n') if keyword in linha]
-                for trecho in matches[:5]:
-                    st.write(f"🔹 ...{trecho.strip()}...")
-            else:
-                st.warning(f"⚠️ Palavra-chave **{keyword}** NÃO encontrada.")
-
+        text = extract_text_from_pdf(uploaded_file)
+        # Quebrar em frases simples por linhas
+        frases = [linha.strip() for linha in text.split('\n') if linha.strip()]
     elif ext in ["xlsx", "xls", "csv"]:
-        df = extract_text_from_table(uploaded_file, ext)
-        found_any = False
-
-        # Concatena todo conteúdo em texto para buscar keywords
-        content = df.astype(str).apply(lambda x: ' '.join(x), axis=1).str.cat(sep=' ').lower()
-
-        for keyword in keywords:
-            if keyword in content:
-                st.success(f"✅ Palavra-chave **{keyword}** encontrada.")
-                found_any = True
-
-                # Mostrar linhas onde a palavra aparece
-                linhas_com_palavra = df[df.astype(str).apply(lambda row: keyword in ' '.join(row).lower(), axis=1)]
-                st.write(f"🔍 Linhas contendo **{keyword}**:")
-                st.dataframe(linhas_com_palavra)
-            else:
-                st.warning(f"⚠️ Palavra-chave **{keyword}** NÃO encontrada.")
-
-        if found_any:
-            st.info("Exibindo linhas das palavras encontradas acima.")
-        else:
-            st.warning("Nenhuma palavra-chave encontrada nas linhas do arquivo.")
-
+        frases = extract_text_from_table(uploaded_file, ext)
     else:
-        st.error("❌ Tipo de arquivo não suportado.")
+        st.error("Arquivo não suportado")
+        st.stop()
+
+    pergunta = st.text_input("❓ Faça sua pergunta:")
+
+    if pergunta:
+        # Busca as 5 frases mais similares à pergunta
+        resultados = process.extract(pergunta, frases, limit=5)
+        st.subheader("💡 Possíveis respostas encontradas:")
+        for frase, score in resultados:
+            st.write(f"**{score}%** similar: {frase}")
+
 
 # ========= UPLOAD DO CSV =========
 uploaded_file = st.file_uploader("📂 Envie o arquivo CSV com a tabela de preços", type=["csv"])
@@ -176,5 +132,6 @@ if uploaded_file:
 
 else:
     st.info("👆 Faça upload do arquivo `Tabela_Precos_Demolicao.csv` para visualizar os dados.")
+
 
 
