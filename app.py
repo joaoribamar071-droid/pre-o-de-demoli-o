@@ -22,62 +22,6 @@ st.markdown(
 
 # ========= CABEÇALHO =========
 st.title("BACKOFFICE CBMI")
-import streamlit as st
-import trimesh
-import tempfile
-import os
-
-st.title("🏗️ Visualizador 3D de Prédio")
-
-uploaded_model = st.file_uploader("📁 Envie um modelo 3D (.stl)", type=["stl"])
-
-if uploaded_model:
-    # Salvar arquivo temporariamente
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".stl") as tmp:
-        tmp.write(uploaded_model.read())
-        tmp_path = tmp.name
-
-    # Carregar o modelo 3D
-    mesh = trimesh.load(tmp_path)
-
-    # Renderizar cena em HTML (usando three.js)
-    scene = mesh.scene()
-    html = scene.show(renderer='threejs', notebook=False, return_html=True)
-
-    # Exibir no app
-    st.components.v1.html(html, height=600)
-
-    # Remover temporário
-    os.remove(tmp_path)
-
-# ========= UPLOAD DO CSV =========
-uploaded_file = st.file_uploader("📂 Envie o arquivo CSV com a tabela de preços", type=["csv"])
-
-if uploaded_file:
-    df = pd.read_csv(uploaded_file)
-
-    # Garantir que preços são numéricos
-    df["Preço (€)"] = pd.to_numeric(df["Preço (€)"], errors="coerce")
-    df = df.dropna(subset=["Preço (€)"])
-
-    # ========= SIDEBAR - FILTROS =========
-    st.sidebar.header("🔍 Filtros")
-    categoria = st.sidebar.selectbox("Escolha uma categoria", ["Todas"] + df["Categoria"].unique().tolist())
-
-    if categoria != "Todas":
-        df_filtrado = df[df["Categoria"] == categoria]
-    else:
-        df_filtrado = df
-
-    # Campo de pesquisa
-    st.sidebar.header("🔎 Pesquisa")
-    pesquisa = st.sidebar.text_input("Digite parte do nome do serviço ou categoria")
-
-    if pesquisa:
-        df_filtrado = df_filtrado[
-            df_filtrado["Serviço"].str.contains(pesquisa, case=False, na=False) |
-            df_filtrado["Categoria"].str.contains(pesquisa, case=False, na=False)
-        ]
 
     # ========= TABELA =========
     st.subheader("📋 Lista de Serviços")
@@ -111,6 +55,7 @@ if uploaded_file:
 
 else:
     st.info("👆 Faça upload do arquivo `Tabela_Precos_Demolicao.csv` para visualizar os dados.")
+
 
 
 
