@@ -26,47 +26,70 @@ import streamlit as st
 import pandas as pd
 import fitz  # PyMuPDF
 from fuzzywuzzy import process
+import zipfile
+import io
+import os
 
-st.title("📋 CBMI - Assistente Simples de Perguntas")
+st.title("📋 CBMI - Assistente de Perguntas com Arquivos")
 
-uploaded_file = st.file_uploader("📁 Envie um arquivo PDF, Excel ou CSV", type=["pdf", "xlsx", "xls", "csv"])
+# Upload do arquivo (PDF, Excel, CSV ou ZIP)
+uploaded_file = st.file_uploader("📁 Envie um arquivo PDF, Excel, CSV ou ZIP", type=["pdf", "xlsx", "xls", "csv", "zip"])
 
-def extract_text_from_pdf(file):
+# === Funções auxiliares ===
+
+def extract_text_from_pdf(file_stream):
     text = ""
-    with fitz.open(stream=file.read(), filetype="pdf") as doc:
+    with fitz.open(stream=file_stream, filetype="pdf") as doc:
         for page in doc:
             text += page.get_text()
     return text
 
-def extract_text_from_table(file, ext):
+def extract_text_from_table(file_stream, ext):
     if ext == "csv":
-        df = pd.read_csv(file)
+        df = pd.read_csv(file_stream)
     else:
-        df = pd.read_excel(file)
-    # Concatenar todas as células em uma lista de frases
+        df = pd.read_excel(file_stream)
     textos = []
     for col in df.columns:
         textos.extend(df[col].astype(str).tolist())
     return textos
 
-if uploaded_file:
-    ext = uploaded_file.name.split(".")[-1].lower()
+def process_file(filename, file_stream):
+    ext = filename.split(".")[-1].lower()
     if ext == "pdf":
-        text = extract_text_from_pdf(uploaded_file)
-        # Quebrar em frases simples por linhas
-        frases = [linha.strip() for linha in text.split('\n') if linha.strip()]
+        text = extract_text_from_pdf(file_stream)
+        return [linha.strip() for linha in text.split('\n') if linha.strip()]
     elif ext in ["xlsx", "xls", "csv"]:
-        frases = extract_text_from_table(uploaded_file, ext)
+        return extract_text_from_table(file_stream, ext)
     else:
-        st.error("Arquivo não suportado")
-        st.stop()
+        return []
 
-    pergunta = st.text_input("❓ Faça sua pergunta:")
+# === Processamento do arquivo ===
 
+frases_total = []
+
+if uploaded_file:
+    file_ext = uploaded_file.name.split(".")[-1].lower()
+
+    if file_ext == "zip":
+        with zipfile.ZipFile(uploaded_file) as z:
+            for name in z.namelist():
+                if name.endswith(('.pdf', '.xlsx', '.xls', '.csv')):
+                    st.info(f"📄 Processando arquivo: {name}")
+                    with z.open(name) as f:
+                        file_bytes = io.BytesIO(f.read())
+                        frases = process_file(name, file_bytes)
+                        frases_total.extend(frases)
+    else:
+        frases_total = process_file(uploaded_file.name, uploaded_file)
+
+# === Interface de pergunta ===
+
+if frases_total:
+    pergunta = st.text_input("❓ Faça sua pergunta com base no conteúdo dos arquivos:")
     if pergunta:
-        # Busca as 5 frases mais similares à pergunta
-        resultados = process.extract(pergunta, frases, limit=5)
-        st.subheader("💡 Possíveis respostas encontradas:")
+        resultados = process.extract(pergunta, frases_total, limit=5)
+        st.subheader("💡 Resultados mais parecidos com sua pergunta:")
         for frase, score in resultados:
             st.write(f"**{score}%** similar: {frase}")
 
@@ -132,6 +155,7 @@ if uploaded_file:
 
 else:
     st.info("👆 Faça upload do arquivo `Tabela_Precos_Demolicao.csv` para visualizar os dados.")
+
 
 
 
