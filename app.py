@@ -22,6 +22,45 @@ st.markdown(
 
 # ========= CABEÇALHO =========
 st.title("BACKOFFICE CBMI")
+import streamlit as st
+import pytesseract
+from PIL import Image
+import re
+import io
+
+# Se for trabalhar com PDF
+from pdf2image import convert_from_bytes
+
+st.title("📐 Leitor de Plantas (Simplificado)")
+
+uploaded_file = st.file_uploader("Envie a planta em PDF ou imagem", type=["pdf", "png", "jpg", "jpeg"])
+
+if uploaded_file:
+    # Se for PDF → converte para imagem
+    if uploaded_file.type == "application/pdf":
+        pages = convert_from_bytes(uploaded_file.read())
+        image = pages[0]  # pega só a primeira página
+    else:
+        image = Image.open(uploaded_file)
+
+    st.image(image, caption="Planta enviada", use_column_width=True)
+
+    # OCR para extrair texto
+    text = pytesseract.image_to_string(image, lang="por")
+
+    # Procura áreas em m² (ex: "12 m²", "20.5m²")
+    matches = re.findall(r"(\d+(?:[\.,]\d+)?)\s*m²", text, re.IGNORECASE)
+
+    if matches:
+        # Converte para float
+        areas = [float(a.replace(",", ".")) for a in matches]
+        total_area = sum(areas)
+
+        st.subheader("📊 Resultado")
+        st.write("Áreas encontradas:", areas)
+        st.write(f"**Área total estimada:** {total_area:.2f} m²")
+    else:
+        st.warning("⚠️ Nenhuma área em m² foi encontrada no texto da planta.")
 
     # ========= TABELA =========
     st.subheader("📋 Lista de Serviços")
@@ -55,6 +94,7 @@ st.title("BACKOFFICE CBMI")
 
 else:
     st.info("👆 Faça upload do arquivo `Tabela_Precos_Demolicao.csv` para visualizar os dados.")
+
 
 
 
