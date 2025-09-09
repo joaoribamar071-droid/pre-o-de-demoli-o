@@ -7,3 +7,7 @@ openpyxl
 xlrd
 fuzzywuzzy
 python-Levenshtein
+streamlit
+pytesseract
+pillow
+pdf2image
