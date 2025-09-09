@@ -21,7 +21,7 @@ st.markdown(
 )
 
 # ========= CABEÇALHO =========
-st.title("BACKOFFICE CBMI") user: Ribamar
+st.title("BACKOFFICE CBMI")
 
     # ========= TABELA =========
     st.subheader("📋 Lista de Serviços")
@@ -55,6 +55,7 @@ st.title("BACKOFFICE CBMI") user: Ribamar
 
 else:
     st.info("👆 Faça upload do arquivo `Tabela_Precos_Demolicao.csv` para visualizar os dados.")
+
 
 
 
