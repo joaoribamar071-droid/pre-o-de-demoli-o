@@ -53,3 +53,4 @@ st.write(f"✅ Custo total: **€ {custo_total:.2f}**")
 
 
 
+
