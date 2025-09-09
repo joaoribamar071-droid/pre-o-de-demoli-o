@@ -27,11 +27,22 @@ import pytesseract
 from PIL import Image
 import re
 import io
-
-# Se for trabalhar com PDF
 from pdf2image import convert_from_bytes
+import subprocess
+
+# Força o caminho do executável do Tesseract no Streamlit Cloud/Linux
+pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
 
 st.title("📐 Leitor de Plantas (Simplificado)")
+
+# Teste para verificar se o Tesseract está instalado
+st.sidebar.subheader("🔍 Diagnóstico")
+try:
+    version_info = subprocess.getoutput("tesseract --version")
+    st.sidebar.text("Versão do Tesseract detectada:")
+    st.sidebar.code(version_info)
+except Exception as e:
+    st.sidebar.error(f"Tesseract não encontrado: {e}")
 
 uploaded_file = st.file_uploader("Envie a planta em PDF ou imagem", type=["pdf", "png", "jpg", "jpeg"])
 
@@ -46,7 +57,11 @@ if uploaded_file:
     st.image(image, caption="Planta enviada", use_column_width=True)
 
     # OCR para extrair texto
-    text = pytesseract.image_to_string(image, lang="por")
+    try:
+        text = pytesseract.image_to_string(image, lang="por")
+    except Exception as e:
+        st.error(f"Erro ao rodar OCR: {e}")
+        st.stop()
 
     # Procura áreas em m² (ex: "12 m²", "20.5m²")
     matches = re.findall(r"(\d+(?:[\.,]\d+)?)\s*m²", text, re.IGNORECASE)
@@ -58,7 +73,7 @@ if uploaded_file:
 
         st.subheader("📊 Resultado")
         st.write("Áreas encontradas:", areas)
-        st.write(f"**Área total estimada:** {total_area:.2f} m²")
+        st.success(f"**Área total estimada:** {total_area:.2f} m²")
     else:
         st.warning("⚠️ Nenhuma área em m² foi encontrada no texto da planta.")
 
@@ -94,6 +109,7 @@ if uploaded_file:
 
 else:
     st.info("👆 Faça upload do arquivo `Tabela_Precos_Demolicao.csv` para visualizar os dados.")
+
 
 
 
