@@ -1,10 +1,6 @@
 import streamlit as st
-import pandas as pd
-from pathlib import Path
 
 # ========= CONFIGURAÇÃO DO APP =========
-static_dir = Path(__file__).parent
-
 st.set_page_config(
     page_title="CBMI APP",
     page_icon="apple-touch-icon.png",  # Ícone no navegador
@@ -21,40 +17,29 @@ st.markdown(
 )
 
 # ========= CABEÇALHO =========
-st.title("BACKOFFICE CBMI")
+col1, col2 = st.columns([3, 1])  # proporção 3:1
+with col1:
+    st.title("BACKOFFICE CBMI")
+with col2:
+    st.markdown("<h3 style='text-align: right;'>USER: JOÃO RIBAMAR</h3>", unsafe_allow_html=True)
 
-    # ========= TABELA =========
-    st.subheader("📋 Lista de Serviços")
-    st.dataframe(df_filtrado, use_container_width=True)
+st.subheader("🧮 Cálculo de Custos")
 
-    # ========= DASHBOARD =========
-    st.subheader("📊 Dashboard de Análise")
-    col1, col2 = st.columns(2)
+# ========= ENTRADAS =========
+pavimento = st.number_input("Digite o tamanho do pavimento (m²)", min_value=0.0, format="%.2f")
+paredes = st.number_input("Digite o tamanho das paredes (m²)", min_value=0.0, format="%.2f")
 
-    with col1:
-        if not df_filtrado.empty:
-            preco_medio = df_filtrado.groupby("Categoria")["Preço (€)"].mean()
-            st.write("Preço médio por categoria (€)")
-            st.bar_chart(preco_medio)
-        else:
-            st.warning("Nenhum dado encontrado para exibir o gráfico.")
+# ========= CÁLCULOS =========
+custo_pavimento = pavimento * 9.50
+custo_paredes = paredes * 25.00
+custo_total = custo_pavimento + custo_paredes
 
-    with col2:
-        if not df_filtrado.empty:
-            qtd_servicos = df_filtrado["Categoria"].value_counts()
-            st.write("Quantidade de serviços por categoria")
-            st.bar_chart(qtd_servicos)
-        else:
-            st.warning("Nenhum dado encontrado para exibir o gráfico.")
+# ========= RESULTADOS =========
+st.write(f"💰 Custo do pavimento: **€ {custo_pavimento:.2f}**")
+st.write(f"💰 Custo das paredes: **€ {custo_paredes:.2f}**")
+st.write(f"✅ Custo total: **€ {custo_total:.2f}**")
 
-    # ========= ÁREA DE EMPOLAMENTO =========
-    st.subheader("⚙️ Área de Empolamento")
-    valor = st.number_input("Digite um valor para empolamento", min_value=0.0, format="%.2f")
-    resultado = valor * 0.66
-    st.write(f"Resultado (valor × 0,66): **{resultado:.2f}**")
 
-else:
-    st.info("👆 Faça upload do arquivo `Tabela_Precos_Demolicao.csv` para visualizar os dados.")
 
 
 
